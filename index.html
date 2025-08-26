@@ -1,0 +1,849 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pigeon Pact - Jungle Focus Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2a2a55"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+        body {
+            font-family: 'Gentium Book Plus', serif;
+            overflow: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            transition: background 2s ease-in-out;
+            background-size: 400% 400%;
+            animation: animatedGradient 30s ease infinite;
+        }
+
+        @keyframes animatedGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .morning { background: linear-gradient(-45deg, #f5a623, #FFDDA1, #f0e68c, #f5a623); }
+        .afternoon { background: linear-gradient(-45deg, #2E8B57, #87CEEB, #3cb371, #2E8B57); }
+        .evening { background: linear-gradient(-45deg, #FF4500, #FFA07A, #ff7f50, #b22222); }
+        .night { background: linear-gradient(-45deg, #0c0a1a, #2a2a55, #1a1a3a, #000010); }
+
+        /* --- Aesthetic Effects --- */
+        .night::before {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: white;
+            box-shadow: 
+                -23vw 18vh 1px 1px #fff, 4vw 45vh 0px 0px #fff, 19vw 33vh 1px 1px #fff, -19vw 33vh 1px 0px #fff, 33vw 40vh 1px 1px #fff, 
+                42vw 13vh 1px 1px #fff, -47vw 23vh 1px 1px #fff, 12vw 15vh 0px 1px #fff, -10vw 8vh 0px 0px #fff, 2vw 29vh 1px 0px #fff, 
+                -32vw 11vh 0px 0px #fff, 20vw 1vh 1px 0px #fff, 49vw 3vh 0px 1px #fff, 3vw 14vh 0px 1px #fff, -28vw 41vh 1px 0px #fff;
+            animation: twinkle 5s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .morning::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-conic-gradient(from 45deg, rgba(255,255,255,0.2) 0deg 5deg, transparent 5deg 15deg);
+            animation: god-rays 20s linear infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes god-rays {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+            pointer-events: none;
+        }
+        
+        .firefly {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #d4ff68;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #d4ff68, 0 0 10px #d4ff68, 0 0 15px #d4ff68;
+            animation: float 10s infinite linear, blink 2s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(1); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(0.5); opacity: 0; }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .jungle-floor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(to top, #2a1a0a, transparent);
+            z-index: 0;
+        }
+
+        .vine {
+            position: absolute;
+            top: -20%;
+            width: 100px;
+            height: 120%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 800'%3E%3Cpath d='M 50,0 C 10,100 90,200 50,300 C 10,400 90,500 50,600 C 10,700 90,800 50,800' fill='none' stroke='%233a5f0b' stroke-width='5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            animation: sway 15s infinite alternate ease-in-out;
+            opacity: 0.3;
+        }
+
+        .vine.left { left: -20px; }
+        .vine.right { right: -20px; transform: scaleX(-1); }
+
+        @keyframes sway {
+            from { transform: translateX(0) rotate(-2deg); }
+            to { transform: translateX(10px) rotate(2deg); }
+        }
+        .vine.right {
+            animation-name: sway-right;
+        }
+        @keyframes sway-right {
+            from { transform: scaleX(-1) translateX(0) rotate(-2deg); }
+            to { transform: scaleX(-1) translateX(-10px) rotate(2deg); }
+        }
+
+
+        .pigeon-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            transition: transform 0.5s;
+        }
+
+        .pigeon {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: all 1s ease-in-out;
+        }
+
+        .pigeon.dead {
+            transform: rotate(-30deg) translateY(20px);
+            filter: grayscale(1);
+        }
+
+        .pigeon-body {
+            position: absolute;
+            width: 100px;
+            height: 120px;
+            background: radial-gradient(circle, #f0f0f0, #dcdcdc);
+            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+            top: 40px;
+            left: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .pigeon-head {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ffffff, #e0e0e0);
+            border-radius: 50%;
+            top: 10px;
+            left: 90px;
+        }
+        .pigeon-eye {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            top: 20px;
+            left: 30px;
+            border: 2px solid white;
+        }
+        .eye-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+        }
+        .pigeon-beak {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 20px;
+            border-color: transparent transparent transparent #ffc107;
+            top: 25px;
+            left: 50px;
+        }
+        .pigeon-wing {
+            position: absolute;
+            width: 80px;
+            height: 50px;
+            background: #e8e8e8;
+            border-radius: 50% 50% 0 0;
+            top: 50px;
+            left: 30px;
+            transform-origin: top right;
+            transform: rotate(-20deg);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+        }
+
+        .pigeon.drinking .pigeon-head { animation: drink 2.8s infinite ease-in-out; }
+        @keyframes drink {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(15px) rotate(15deg); }
+        }
+        .pigeon.drinking .pigeon-wing { animation: flutter 0.5s infinite alternate; }
+        @keyframes flutter {
+            from { transform: rotate(-20deg); }
+            to { transform: rotate(-15deg); }
+        }
+        
+        .pigeon.flying {
+            animation: fly-away 5s forwards ease-in-out;
+        }
+        @keyframes fly-away {
+            0% { transform: translate(0, 0) scale(1) rotate(0); opacity: 1; }
+            100% { transform: translate(150vw, -100vh) scale(0.2) rotate(20deg); opacity: 0; }
+        }
+
+        .blood-drop {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background: radial-gradient(circle, #ff4d4d, #b30000);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: 60px; /* Neck area */
+            left: 110px;
+            opacity: 0;
+            animation: drip 3.5s infinite ease-out;
+        }
+        .blood-drop:nth-child(2) { animation-delay: 0.5s; }
+        .blood-drop:nth-child(3) { animation-delay: 1.2s; }
+        @keyframes drip {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(80px); opacity: 0; }
+        }
+
+        .blood-pool {
+            position: absolute;
+            width: 100px;
+            height: 20px;
+            background: radial-gradient(ellipse, #b30000, #660000);
+            border-radius: 50%;
+            bottom: 30px;
+            left: 50px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        .pigeon.dead + .blood-pool {
+            opacity: 0.8;
+        }
+        
+        .broken-heart {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            color: #b30000;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        .pigeon.dead ~ .broken-heart {
+            opacity: 1;
+        }
+
+        .water-bowl {
+            position: absolute;
+            width: 150px;
+            height: 50px;
+            background: #ccc;
+            border-radius: 0 0 50% 50%;
+            bottom: 40px;
+            left: 25px;
+            overflow: hidden;
+        }
+        .water-surface {
+            position: absolute;
+            width: 100%;
+            height: 80%;
+            bottom: 0;
+            border-radius: 0 0 50% 50%;
+            transition: background 1s ease-in-out;
+        }
+        .water-surface.blue {
+            background: linear-gradient(to top, #87CEFA, #1E90FF);
+        }
+        .water-surface.red {
+            background: linear-gradient(to top, #b30000, #ff4d4d);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .progress-bar-container {
+            height: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #39FF14, #00BFFF);
+            border-radius: 5px;
+            transition: width 0.5s ease-out;
+        }
+
+        #history-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div id="background" class="background"></div>
+
+    <div class="fixed top-0 left-0 w-full h-full" id="particle-container"></div>
+    <div class="vine left"></div>
+    <div class="vine right"></div>
+    <div class="jungle-floor"></div>
+
+    <main class="relative z-10 flex flex-col items-center justify-center h-screen p-4">
+
+        <div id="message-box" class="absolute top-4 text-center text-2xl font-bold tracking-wider" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+            <p id="message-text">Set your focus goal for today.</p>
+        </div>
+
+        <div class="pigeon-container" id="pigeon-container">
+            <div class="pigeon" id="pigeon">
+                <div class="pigeon-body"></div>
+                <div class="pigeon-head">
+                    <div class="pigeon-eye"><div class="eye-sparkle"></div></div>
+                    <div class="pigeon-beak"></div>
+                </div>
+                <div class="pigeon-wing"></div>
+                <div id="crop-leak-area"></div>
+            </div>
+            <div class="blood-pool" id="blood-pool"></div>
+            <div class="water-bowl">
+                <div id="water-surface" class="water-surface"></div>
+            </div>
+            <div class="broken-heart" id="broken-heart">💔</div>
+        </div>
+
+        <div class="glass-panel p-6 w-full max-w-md mt-8 space-y-4">
+            <div class="flex justify-between items-center">
+                <div class="text-lg">
+                    <span id="timer-display" class="text-5xl font-bold">00:00</span>
+                </div>
+                <div class="text-right">
+                    <div id="clock" class="text-3xl font-bold"></div>
+                    <div id="date" class="text-sm"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Daily Progress</span>
+                    <span id="progress-text">0 / 60 minutes</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                 <div class="flex items-center space-x-2">
+                    <label for="goal-input">Goal (min):</label>
+                    <input type="number" id="goal-input" value="60" class="bg-transparent border-b-2 border-white w-20 text-center text-lg">
+                </div>
+                <div class="flex items-center">
+                    <button id="control-button" class="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-600 transition-colors">Start Focus</button>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-center space-x-4 pt-2 border-t border-white/20">
+                <button id="history-button" class="px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors text-sm">View History</button>
+                <button id="import-button" class="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors text-sm">Import Data</button>
+                <button id="export-button" class="px-4 py-2 bg-purple-500 rounded-lg hover:bg-purple-600 transition-colors text-sm">Export Data</button>
+                <input type="file" id="import-file" class="hidden" accept=".csv">
+            </div>
+        </div>
+    </main>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 opacity-0 pointer-events-none">
+        <div class="glass-panel p-6 rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Focus History</h2>
+                <button id="close-history-button" class="text-2xl">&times;</button>
+            </div>
+            <div class="mb-4 text-center">
+                <p class="text-lg">Today's Total Logged Time: <span id="today-total" class="font-bold">0m</span></p>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-white/20">
+                            <th class="p-2">Date</th>
+                            <th class="p-2">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- History rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // IMPORTANT: PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrS0z5OsagTZseOIZdH8pRGLq_RCd0I8jqFpyzjfWZ45TqLFD06RiZ_eCM4XQCSwhaag/exec";
+
+            const state = {
+                isFocusing: false,
+                timerInterval: null,
+                elapsedSeconds: 0,
+                dailyGoal: 60, // minutes
+                totalFocusSecondsToday: 0,
+                lastSavedDate: new Date().toLocaleDateString(),
+                pactBroken: false,
+            };
+
+            // DOM Elements
+            const background = document.getElementById('background');
+            const particleContainer = document.getElementById('particle-container');
+            const clockEl = document.getElementById('clock');
+            const dateEl = document.getElementById('date');
+            const timerDisplay = document.getElementById('timer-display');
+            const controlButton = document.getElementById('control-button');
+            const pigeon = document.getElementById('pigeon');
+            const waterSurface = document.getElementById('water-surface');
+            const cropLeakArea = document.getElementById('crop-leak-area');
+            const goalInput = document.getElementById('goal-input');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const messageText = document.getElementById('message-text');
+            const bloodPool = document.getElementById('blood-pool');
+            const brokenHeart = document.getElementById('broken-heart');
+            const importFile = document.getElementById('import-file');
+            const historyModal = document.getElementById('history-modal');
+            const historyTableBody = document.getElementById('history-table-body');
+            const todayTotalEl = document.getElementById('today-total');
+
+            // --- Initialization ---
+            function init() {
+                if (SCRIPT_URL === "") {
+                    messageText.textContent = "Please set your Google Apps Script URL in the code.";
+                    messageText.style.color = "#FF6347";
+                }
+                loadState();
+                updateClock();
+                setInterval(updateClock, 1000);
+                updateAtmosphere();
+                setupEventListeners();
+                updateProgressUI();
+                checkMidnight();
+                
+                if (state.pactBroken) {
+                    setFailureState();
+                } else {
+                    setIdleState();
+                }
+            }
+
+            // --- State Management ---
+            function saveState() {
+                localStorage.setItem('pigeonPactState', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedState = JSON.parse(localStorage.getItem('pigeonPactState'));
+                if (savedState) {
+                    const today = new Date().toLocaleDateString();
+                    if (savedState.lastSavedDate !== today) {
+                        savedState.totalFocusSecondsToday = 0;
+                        savedState.pactBroken = false;
+                        savedState.lastSavedDate = today;
+                    }
+                    Object.assign(state, savedState);
+                }
+                goalInput.value = state.dailyGoal;
+            }
+
+            // --- Time and Atmosphere ---
+            function updateClock() {
+                const now = new Date();
+                clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                dateEl.textContent = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                
+                if (now.getHours() === 23 && now.getMinutes() === 59 && now.getSeconds() === 59) {
+                    setTimeout(checkMidnightCondition, 1000);
+                }
+            }
+
+            function updateAtmosphere() {
+                const hour = new Date().getHours();
+                let timeOfDay = 'night';
+                if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+                else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
+                else if (hour >= 18 && hour < 22) timeOfDay = 'evening';
+                
+                background.className = `background ${timeOfDay}`;
+                particleContainer.innerHTML = '';
+                const particleCount = timeOfDay === 'night' ? 30 : 15;
+                const particleClass = timeOfDay === 'night' ? 'firefly' : 'particle';
+
+                for (let i = 0; i < particleCount; i++) {
+                    const p = document.createElement('div');
+                    p.className = particleClass;
+                    p.style.left = `${Math.random() * 100}vw`;
+                    p.style.top = `${Math.random() * 100}vh`;
+                    p.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                    p.style.animationDelay = `${Math.random() * 10}s`;
+                    if(particleClass === 'particle') {
+                        p.style.width = p.style.height = `${Math.random() * 5 + 2}px`;
+                    }
+                    particleContainer.appendChild(p);
+                }
+            }
+            
+            function checkMidnight() {
+                const now = new Date();
+                const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+                setTimeout(() => {
+                    checkMidnightCondition();
+                    setInterval(checkMidnightCondition, 24 * 60 * 60 * 1000);
+                }, msToMidnight);
+            }
+
+            function checkMidnightCondition() {
+                if (!state.pactBroken && state.totalFocusSecondsToday < state.dailyGoal * 60) {
+                    state.pactBroken = true;
+                    setFailureState();
+                }
+                state.totalFocusSecondsToday = 0;
+                state.lastSavedDate = new Date().toLocaleDateString();
+                saveState();
+                updateProgressUI();
+            }
+
+            // --- UI and State Changes ---
+            function setIdleState() {
+                pigeon.classList.remove('drinking', 'unfocused');
+                waterSurface.className = 'water-surface';
+                cropLeakArea.innerHTML = '';
+                if (SCRIPT_URL !== "") messageText.textContent = "Ready to focus?";
+            }
+
+            function setFocusState() {
+                if(state.pactBroken) return;
+                state.isFocusing = true;
+                controlButton.textContent = 'End Focus';
+                controlButton.classList.replace('bg-green-500', 'bg-red-500');
+                controlButton.classList.replace('hover:bg-green-600', 'hover:bg-red-600');
+                
+                pigeon.classList.add('drinking');
+                pigeon.classList.remove('unfocused');
+                waterSurface.className = 'water-surface blue';
+                cropLeakArea.innerHTML = '';
+                messageText.textContent = "You are keeping your promise.";
+                goalInput.disabled = true;
+
+                startTimer();
+            }
+
+            function setUnfocusedState() {
+                state.isFocusing = false;
+                controlButton.textContent = 'Start Focus';
+                controlButton.classList.replace('bg-red-500', 'bg-green-500');
+                controlButton.classList.replace('hover:bg-red-600', 'hover:bg-green-600');
+
+                pigeon.classList.remove('drinking');
+                pigeon.classList.add('unfocused');
+                waterSurface.className = 'water-surface red';
+                messageText.textContent = "The pact is fragile...";
+                goalInput.disabled = false;
+
+                cropLeakArea.innerHTML = `<div class="blood-drop"></div><div class="blood-drop"></div><div class="blood-drop"></div>`;
+                
+                if (state.elapsedSeconds > 0) {
+                    logDataToSheet(state.elapsedSeconds);
+                }
+                stopTimer();
+            }
+
+            function setSuccessState() {
+                if (state.elapsedSeconds > 0) {
+                    logDataToSheet(state.elapsedSeconds);
+                }
+                stopTimer();
+                pigeon.classList.add('flying');
+                messageText.textContent = "Your pigeon is free. You kept your promise.";
+                setTimeout(() => {
+                    pigeon.style.display = 'none';
+                }, 5000);
+            }
+
+            function setFailureState() {
+                stopTimer();
+                pigeon.classList.add('dead');
+                bloodPool.style.opacity = '0.8';
+                brokenHeart.style.opacity = '1';
+                messageText.textContent = "You broke the pact. Your sweet pigeon did not survive.";
+                controlButton.disabled = true;
+                goalInput.disabled = true;
+                waterSurface.className = 'water-surface red';
+            }
+
+            // --- Timer Logic ---
+            function startTimer() {
+                if (state.timerInterval) clearInterval(state.timerInterval);
+                state.elapsedSeconds = 0;
+                state.timerInterval = setInterval(() => {
+                    state.elapsedSeconds++;
+                    state.totalFocusSecondsToday++;
+                    updateTimerDisplay();
+                    updateProgressUI();
+                    saveState();
+
+                    if (state.totalFocusSecondsToday >= state.dailyGoal * 60) {
+                        setSuccessState();
+                    }
+                }, 1000);
+            }
+
+            function stopTimer() {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+
+            function updateTimerDisplay() {
+                const minutes = Math.floor(state.elapsedSeconds / 60);
+                const seconds = state.elapsedSeconds % 60;
+                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+            
+            function updateProgressUI() {
+                const progressMinutes = Math.floor(state.totalFocusSecondsToday / 60);
+                progressText.textContent = `${progressMinutes} / ${state.dailyGoal} minutes`;
+                const progressPercentage = Math.min((state.totalFocusSecondsToday / (state.dailyGoal * 60)) * 100, 100);
+                progressBar.style.width = `${progressPercentage}%`;
+            }
+            
+            // --- Google Sheets Integration ---
+            function logDataToSheet(seconds) {
+                if (SCRIPT_URL === "") return;
+                const formData = new FormData();
+                formData.append('timestamp', new Date().toISOString());
+                formData.append('duration', seconds);
+                
+                fetch(SCRIPT_URL, { method: 'POST', body: formData})
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            function fetchHistory() {
+                if (SCRIPT_URL === "") {
+                    // The message on the main screen is enough, no need for an alert.
+                    return;
+                }
+                historyTableBody.innerHTML = '<tr><td colspan="2" class="p-2 text-center">Loading...</td></tr>';
+                showHistoryModal();
+
+                fetch(SCRIPT_URL)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderHistory(data.records);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching history:", error);
+                        historyTableBody.innerHTML = '<tr><td colspan="2" class="p-2 text-center text-red-400">Failed to load history.</td></tr>';
+                    });
+            }
+
+            function renderHistory(records) {
+                historyTableBody.innerHTML = '';
+                if (!records || records.length === 0) {
+                    historyTableBody.innerHTML = '<tr><td colspan="2" class="p-2 text-center">No records found.</td></tr>';
+                    todayTotalEl.textContent = formatSeconds(0);
+                    return;
+                }
+
+                let todaySeconds = 0;
+                const todayStr = new Date().toLocaleDateString();
+
+                records.reverse().forEach(record => {
+                    const recordDate = new Date(record.timestamp);
+                    if (recordDate.toLocaleDateString() === todayStr) {
+                        todaySeconds += record.duration;
+                    }
+
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-white/10';
+                    row.innerHTML = `
+                        <td class="p-2">${recordDate.toLocaleString()}</td>
+                        <td class="p-2">${formatSeconds(record.duration)}</td>
+                    `;
+                    historyTableBody.appendChild(row);
+                });
+
+                todayTotalEl.textContent = formatSeconds(todaySeconds);
+            }
+
+            function formatSeconds(seconds) {
+                if (seconds < 60) return `${seconds}s`;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                if (remainingSeconds === 0) return `${minutes}m`;
+                return `${minutes}m ${remainingSeconds}s`;
+            }
+
+            function showHistoryModal() {
+                historyModal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            function hideHistoryModal() {
+                historyModal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // --- Data Import/Export ---
+            function exportData() {
+                const csvHeader = 'key,value\n';
+                const stateToSave = JSON.parse(localStorage.getItem('pigeonPactState')) || state;
+                const csvRows = Object.entries(stateToSave).map(([key, value]) => `"${key}","${String(value).replace(/"/g, '""')}"`).join('\n');
+                
+                const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `pigeon_pact_data_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            }
+
+            function importData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    const importedState = {};
+                    try {
+                        const rows = text.split('\n').slice(1);
+                        rows.forEach(row => {
+                            if (!row) return;
+                            const [key, value] = row.match(/(?:"[^"]*"|[^,]+)/g);
+                            const cleanKey = key.replace(/"/g, '');
+                            let cleanValue = value.replace(/"/g, '');
+                            try { importedState[cleanKey] = JSON.parse(cleanValue); } catch { importedState[cleanKey] = cleanValue; }
+                        });
+                        
+                        if (importedState.dailyGoal && importedState.lastSavedDate) {
+                            localStorage.setItem('pigeonPactState', JSON.stringify(importedState));
+                            window.location.reload();
+                        } else { 
+                            messageText.textContent = 'Invalid or corrupted data file.';
+                            messageText.style.color = "#FF6347";
+                        }
+                    } catch (error) { 
+                        messageText.textContent = "Could not import data.";
+                        messageText.style.color = "#FF6347";
+                    }
+                };
+                reader.readAsText(file);
+                importFile.value = '';
+            }
+
+            // --- Event Listeners ---
+            function setupEventListeners() {
+                controlButton.addEventListener('click', toggleFocus);
+                goalInput.addEventListener('change', () => {
+                    const newGoal = parseInt(goalInput.value);
+                    if (newGoal > 0) {
+                        state.dailyGoal = newGoal;
+                        updateProgressUI();
+                        saveState();
+                    } else { goalInput.value = state.dailyGoal; }
+                });
+                
+                document.getElementById('export-button').addEventListener('click', exportData);
+                document.getElementById('import-button').addEventListener('click', () => importFile.click());
+                importFile.addEventListener('change', importData);
+
+                document.getElementById('history-button').addEventListener('click', fetchHistory);
+                document.getElementById('close-history-button').addEventListener('click', hideHistoryModal);
+            }
+
+            function toggleFocus() {
+                if (state.isFocusing) {
+                    setUnfocusedState();
+                } else {
+                    setFocusState();
+                }
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
